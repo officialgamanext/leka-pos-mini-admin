@@ -14,6 +14,7 @@ import {
   MapPin,
   Hash
 } from 'lucide-react';
+import CustomSelect from '../components/CustomSelect';
 
 const BusinessDetails = () => {
   const { ownerId, bizId } = useParams();
@@ -135,16 +136,16 @@ const BusinessDetails = () => {
               </div>
               <div className="form-group">
                 <label className="form-label">Status</label>
-                <select 
-                  className="form-input" 
+                <CustomSelect 
                   value={formData.status || 'active'} 
-                  onChange={(e) => setFormData({...formData, status: e.target.value})}
+                  onChange={(val) => setFormData({...formData, status: val})}
                   disabled={!editing}
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="suspended">Suspended</option>
-                </select>
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'inactive', label: 'Inactive' },
+                    { value: 'suspended', label: 'Suspended' }
+                  ]}
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Address</label>
