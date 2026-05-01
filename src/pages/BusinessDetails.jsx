@@ -26,24 +26,70 @@ const BusinessDetails = () => {
   const [activeTab, setActiveTab] = useState('info');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [editing, setEditing] = useState(startInEditMode);
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!ownerId || !bizId) {
+        console.warn('[BusinessDetails] Missing ownerId or bizId in params');
+        return;
+      }
+
       setLoading(true);
+      setError(null);
+      console.log(`[BusinessDetails] Fetching details for Owner: ${ownerId}, Biz: ${bizId}`);
+
       try {
         const res = await adminApi.getBusinessDetails(ownerId, bizId);
-        setData(res.data);
-        setFormData(res.data.info);
+        console.log('[BusinessDetails] API Response:', res.data);
+        
+        if (res.data && res.data.info) {
+          setData(res.data);
+          setFormData(res.data.info);
+        } else {
+          console.error('[BusinessDetails] Invalid data structure received:', res.data);
+          setError('Received invalid data from server.');
+        }
       } catch (err) {
-        console.error(err);
+        console.error('[BusinessDetails] Fetch failed:', err);
+        setError(err.response?.data?.message || err.message || 'Failed to load business details.');
       } finally {
         setLoading(false);
       }
     };
     fetchData();
   }, [ownerId, bizId]);
+
+  if (loading) return (
+    <div style={{ padding: '4rem', textAlign: 'center' }}>
+      <div className="spinner" style={{ margin: '0 auto 1.5rem' }}></div>
+      <p style={{ color: '#64748b', fontWeight: 500 }}>Loading business details...</p>
+    </div>
+  );
+
+  if (error) return (
+    <div style={{ padding: '4rem', textAlign: 'center' }}>
+      <div style={{ color: '#ef4444', marginBottom: '1.5rem' }}>
+        <Info size={48} style={{ margin: '0 auto' }} />
+      </div>
+      <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Error Loading Data</h3>
+      <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>{error}</p>
+      <button className="btn btn-primary" onClick={() => window.location.reload()}>
+        Retry Loading
+      </button>
+    </div>
+  );
+
+  if (!data) return (
+    <div style={{ padding: '4rem', textAlign: 'center' }}>
+      <p style={{ color: '#64748b' }}>Business not found.</p>
+      <button className="btn btn-outline" style={{ marginTop: '1rem' }} onClick={() => navigate('/businesses')}>
+        Back to Businesses
+      </button>
+    </div>
+  );
 
   const handleUpdateInfo = async () => {
     try {

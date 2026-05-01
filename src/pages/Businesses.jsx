@@ -7,15 +7,31 @@ const Businesses = () => {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const fetchBusinesses = async () => {
     setLoading(true);
+    setError(null);
+    console.log('[Businesses] Fetching all businesses...');
+    
     try {
       const res = await adminApi.getBusinesses();
-      setBusinesses(res.data);
+      console.log('[Businesses] API Response:', res.data);
+      
+      if (Array.isArray(res.data)) {
+        setBusinesses(res.data);
+      } else if (res.data && Array.isArray(res.data.businesses)) {
+        // Handle alternative response structure if it exists
+        setBusinesses(res.data.businesses);
+      } else {
+        console.error('[Businesses] Unexpected data format:', res.data);
+        setBusinesses([]);
+        setError('Received unexpected data format from server.');
+      }
     } catch (err) {
-      console.error(err);
+      console.error('[Businesses] Fetch failed:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to fetch businesses.');
     } finally {
       setLoading(false);
     }
@@ -31,7 +47,8 @@ const Businesses = () => {
         await adminApi.deleteBusiness(ownerId, bizId);
         fetchBusinesses();
       } catch (err) {
-        alert('Failed to delete business');
+        console.error('[Businesses] Delete failed:', err);
+        alert('Failed to delete business: ' + (err.response?.data?.message || err.message));
       }
     }
   };
@@ -87,6 +104,11 @@ const Businesses = () => {
               <tr><td colSpan="6" style={{ textAlign: 'center', padding: '4rem' }}>
                 <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
                 <p style={{ color: '#64748b' }}>Loading businesses...</p>
+              </td></tr>
+            ) : error ? (
+              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '4rem' }}>
+                <div style={{ color: '#ef4444', marginBottom: '1rem' }}>{error}</div>
+                <button className="btn btn-outline btn-sm" onClick={fetchBusinesses}>Retry</button>
               </td></tr>
             ) : filteredBusinesses.length === 0 ? (
               <tr><td colSpan="6" style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
