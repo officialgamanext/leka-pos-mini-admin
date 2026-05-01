@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 });
 
 // For local dev, we might not have tokens, but we added the middleware.
@@ -12,7 +12,10 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   // Add admin secret for development access
-  config.headers['x-admin-secret'] = 'leka-admin-bypass-2024';
+  const adminSecret = import.meta.env.VITE_ADMIN_SECRET;
+  if (adminSecret) {
+    config.headers['x-admin-secret'] = adminSecret;
+  }
   return config;
 });
 

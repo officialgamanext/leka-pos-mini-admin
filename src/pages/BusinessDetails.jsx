@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { adminApi } from '../api';
 import { 
   ArrowLeft, 
@@ -18,10 +18,14 @@ import {
 const BusinessDetails = () => {
   const { ownerId, bizId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const startInEditMode = queryParams.get('edit') === 'true';
+
   const [activeTab, setActiveTab] = useState('info');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(startInEditMode);
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
